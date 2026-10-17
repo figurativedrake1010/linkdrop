@@ -19,14 +19,17 @@ psql "$PG_URL" -f db/schema.sql
 npm start
 ```
 
-The app listens on port 3000. Open http://localhost:3000 and drop a link.
+The app listens on port 8080 by default (or the port specified by `$PORT`). Open http://localhost:8080 and drop a link.
 
 ## Configuration
 
-| Variable | What it is |
-|---|---|
-| `PG_URL` | PostgreSQL connection string, e.g. `postgresql://user:password@host:5432/linkdrop` |
-| `HOST` | Interface to listen on (optional) |
+| Variable | What it is | Default |
+|---|---|---|
+| `DATABASE_URL` / `PG_URL` | PostgreSQL connection string, e.g. `postgresql://user:password@host:5432/linkdrop` | None (required) |
+| `PORT` | HTTP port the server listens on | `8080` |
+| `HOST` | Interface to listen on | `0.0.0.0` |
+
+> Note: The app automatically initializes the `links` table on startup if it does not already exist.
 
 ## Health check
 
