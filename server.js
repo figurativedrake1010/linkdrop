@@ -4,9 +4,18 @@ const config = require('./config');
 
 const pool = new Pool({ connectionString: config.databaseUrl, max: 5 });
 
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function render(links) {
   const items = links
-    .map((l) => `<li><a href="${l.url}">${l.url}</a><p>${l.note}</p><time>${l.created_at.toISOString()}</time></li>`)
+    .map((l) => `<li><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(l.url)}</a><p>${escapeHtml(l.note)}</p><time>${new Date(l.created_at).toISOString()}</time></li>`)
     .join('\n');
   return `<!doctype html>
 <html lang="en">
@@ -39,7 +48,7 @@ ${items}
 
 async function listLinks() {
   const { rows } = await pool.query(
-    'SELECT url, note, created_at FROM links ORDER BY created_at LIMIT $1',
+    'SELECT url, note, created_at FROM links ORDER BY created_at DESC LIMIT $1',
     [config.pageSize],
   );
   return rows;
