@@ -49,6 +49,26 @@ async function addLink(url, note) {
   await pool.query('INSERT INTO links (url, note) VALUES ($1, $2)', [url, note]);
 }
 
+async function initDb() {
+  if (!config.databaseUrl) {
+    console.warn('DATABASE_URL or PG_URL not set; skipping automatic schema migration.');
+    return;
+  }
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS links (
+        id         bigserial PRIMARY KEY,
+        url        text        NOT NULL,
+        note       text        NOT NULL DEFAULT '',
+        created_at timestamptz NOT NULL DEFAULT now()
+      );
+    `);
+    console.log('Database initialized: links table is ready.');
+  } catch (err) {
+    console.error('Database initialization warning:', err.message);
+  }
+}
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -93,8 +113,10 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(config.port, config.host, () => {
-  console.log(`linkdrop listening on http://${config.host}:${config.port}`);
+initDb().finally(() => {
+  server.listen(config.port, config.host, () => {
+    console.log(`linkdrop listening on http://${config.host}:${config.port}`);
+  });
 });
 
 process.on('SIGTERM', () => {
